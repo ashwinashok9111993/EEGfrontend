@@ -22,7 +22,7 @@ class GUI(Frame):
         print 'ok'
         
     def onExit(self):
-  	self.quit()
+		self.quit()
 
     def initUI(self):
 		self.parent.title("EEGanalyser")
@@ -32,6 +32,10 @@ class GUI(Frame):
 		fileMenu.add_command(label="load .mat",command = self.loadmat)
 		fileMenu.add_command(label="Exit", command=self.onExit)
 		menubar.add_cascade(label="File", menu=fileMenu)
+		toolsMenu = Menu(menubar)
+		toolsMenu.add_command(label="daubechev",command = self.loadmat)
+		toolsMenu.add_command(label="plot2pdf", command=self.onExit)
+		menubar.add_cascade(label="tools", menu=toolsMenu)
 			
        
 def main():
