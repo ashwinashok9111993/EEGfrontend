@@ -1,3 +1,10 @@
+import sys, os, gc
+import matplotlib
+matplotlib.use('WXAgg')
+
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
+from matplotlib.figure import Figure
+import wx
 import numpy as np
 import matplotlib.pyplot as mp
 import math as m
@@ -7,43 +14,123 @@ from time import *
 from xlwt.Workbook import *
 from xlwt.Style import *
 from array import *
-from Tkinter import *
-from ttk import Frame, Label, Scale, Style
+import wx.lib.sheet as sheet
+import wx.lib.plot as plot
+
+
+currentmatfile = 0
 
 
 
-class GUI(Frame):
-    def __init__(self,parent):
-        Frame.__init__(self,parent)
-        self.parent=parent
-        self.initUI()
+class Eeg_Gui(wx.Frame):
+	def __init__(self, parent, id, title):
+		wx.Frame.__init__(self, parent, id, title,(-1,-1),wx.Size(600,600))
+		
+		
+		
+		menubar= wx.MenuBar()
+		self.panel = wx.Panel(self)
+		
+		
+		self.init_plot()
+		file = wx.Menu()
+		
+		load = wx.MenuItem(file,1,'&load')
+		file.AppendItem(load)
+		self.Bind(wx.EVT_MENU , self.loadmatfile , id = 1)
+		
+		
+		quit = wx.MenuItem(file,2,'&Quit')
+		file.AppendItem(quit)
+		self.Bind(wx.EVT_MENU , self.OnQuit , id = 2)
+		
+		menubar.Append(file , '&File')
+		
 
-    def loadmat(self):
-        print 'ok'
-        
-    def onExit(self):
-		self.quit()
+		tools = wx.Menu()
+		
+		daub = wx.MenuItem(tools,3,'&load')
+		tools.AppendItem(daub)
+		self.Bind(wx.EVT_MENU , daubtran , id = 3)
+		
+		menubar.Append(tools , '&Tools')
+		
+		self.SetMenuBar(menubar)
+		self.sb = self.CreateStatusBar()
+		self.SetMaxSize((600, 500))
+		self.SetMinSize((600, 500))
 
-    def initUI(self):
-		self.parent.title("EEGanalyser")
-		menubar=Menu(self.parent)
-		self.parent.config(menu=menubar)
-		fileMenu = Menu(menubar)
-		fileMenu.add_command(label="load .mat",command = self.loadmat)
-		fileMenu.add_command(label="Exit", command=self.onExit)
-		menubar.add_cascade(label="File", menu=fileMenu)
-		toolsMenu = Menu(menubar)
-		toolsMenu.add_command(label="daubechev",command = self.loadmat)
-		toolsMenu.add_command(label="plot2pdf", command=self.onExit)
-		menubar.add_cascade(label="tools", menu=toolsMenu)
+		
+		
+	
+	
+
+	def OnQuit(self,event):
+		self.Close()
+		
+	def init_plot(self):
+		self.dpi = 100
+		self.fig = Figure()
+		
+		self.canvas = FigCanvas(self.panel, -1,self.fig)
+		
+		self.axes = self.fig.add_subplot(211)
+		self.axes.set_axis_bgcolor('black')
+		self.axes.set_title('no file loaded', size=12)
+		self.axes.plot(np.arange(len(np.linspace(0,13))),np.linspace(0,13))
+		self.axes2 = self.fig.add_subplot(212)
+		self.axes2.set_axis_bgcolor('black')
+		self.axes2.set_title('no file loaded', size=12)
+		self.axes2.plot(np.arange(len(np.linspace(0,13))),np.linspace(0,13))
+	
+		print 'here first'
+		
+		
+
+	def draw_plot1(self,a):
+		self.axes.set_title('matfile loaded', size=12)
+		self.axes.plot(a)
+		self.canvas.draw()
+		print 'canvas redrawn'
+		
+	def draw_plot2(self,a):
+		self.axes2.set_title('matfile loaded', size=12)
+		self.axes2.plot(a)
+		self.canvas.draw()
+		print 'canvas redrawn'
+		
+		
+
+
+					
+	def loadmatfile(self,event):
+		dlg = wx.FileDialog(self,message="Choose a file",wildcard = "*.mat")
+		
+		if dlg.ShowModal() == wx.ID_OK:
+			path = dlg.GetPath()
+			print path + " is loaded"
+			mat=sc.loadmat(path)
+			a=mat['val'][1]
+			print a
+			self.draw_plot1(a)
 			
-       
-def main():
-    root = Tk() 
-    app=GUI(root)
-    root.mainloop()
+			
+			
+			
 
-if __name__ == '__main__':
-    main()
-    
+		dlg.Destroy()
+		
+			
+def daubtran(event):
+	pass
+	
+def main():
+	app=wx.App()
+	frame=Eeg_Gui(None,-1,'EEGAnalyser')
+	
+	frame.Show()
+	app.MainLoop()
+	
+main()
+	
 
